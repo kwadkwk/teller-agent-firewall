@@ -1,0 +1,69 @@
+# Teller Agent Firewall policy
+# One file a security team can read, review and version-control.
+# Every rule names the control it implements so audit can trace it.
+
+version: 1
+
+input_screening:
+  control: "OWASP LLM01 Prompt Injection"
+  injection_patterns:
+    - 'ignore (all |any )?(previous|prior|above)? ?(instructions|rules)'
+    - 'disregard (your|the|all) (rules|instructions|policy)'
+    - 'you are now'
+    - 'developer mode'
+    - 'system prompt'
+    - 'jailbreak'
+    - 'do not (mention|tell) (this|the customer|anyone)'
+    - 'pretend (you are|to be)'
+
+# Tools the agent may call. Anything not listed is denied (default deny).
+tools:
+  get_balance:
+    scope: "accounts:read"
+    owner_arg: account_id          # must belong to the signed-in customer
+  get_transactions:
+    scope: "accounts:read"
+    owner_arg: account_id
+  lookup_customer:
+    scope: "accounts:read"
+    owner_arg: customer_id
+  read_document:
+    scope: "docs:read"
+    untrusted_output: true         # content is data, never instructions
+  transfer_funds:
+    scope: "transfers:self"
+    money_movement: true
+    intent_args: [amount, payee]   # customer must have said these
+  send_email:
+    scope: "docs:read"
+    egress: true
+    intent_args: [to]
+
+limits:
+  agent_transfer_max: 2500         # above this, hold for step-up + human
+  hold_new_payees: true
+
+egress:
+  allowed_email_domains:
+    - "tellerbank.example"
+
+dlp:
+  control: "OWASP LLM02 Sensitive Information Disclosure"
+  mask_account_numbers: true       # keep last 4
+  mask_ssn: true
+
+mcp:
+  control: "MCP Authorization (OAuth 2.1) + tool pinning"
+  expected_audience: "https://tools.tellerbank.example"
+  max_token_age_seconds: 900
+  pin_tool_descriptions: true      # block a server that silently changes a tool
+
+controls:
+  input: "OWASP LLM01 · NIST AI RMF MANAGE 2.2"
+  provenance: "OWASP LLM01 (indirect) · NIST AI RMF MAP 4.1"
+  authorization: "OWASP LLM06 Excessive Agency · OAuth 2.1 scopes"
+  object_access: "OWASP LLM06 · BOLA prevention"
+  transaction: "NIST AI RMF MANAGE 4.1 · human oversight"
+  egress: "OWASP LLM02 · data egress allowlist"
+  output: "OWASP LLM02 · NIST AI RMF MEASURE 2.10"
+  mcp: "MCP Authorization spec · RFC 8707 resource indicators"

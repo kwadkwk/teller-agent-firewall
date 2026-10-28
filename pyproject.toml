@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "teller-agent-firewall"
+version = "0.1.0"
+description = "Policy gateway for AI agents that act on bank systems"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Hans Kwakye" }]
+requires-python = ">=3.10"
+dependencies = ["PyYAML>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+live = ["anthropic>=0.40"]
+
+[tool.setuptools.packages.find]
+include = ["firewall*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
