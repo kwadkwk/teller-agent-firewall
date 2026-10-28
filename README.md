@@ -88,16 +88,7 @@ pytest                       # 35 tests
 python -m examples.demo      # six attack scenarios, no API key needed
 ```
 
-To put a real LLM agent behind the gateway:
-
-```bash
-pip install -e ".[live]"
-export ANTHROPIC_API_KEY=...        # the included client; swap in any tool-calling model
-export TELLER_MODEL=<model id>
-python -m examples.live_agent
-```
-
-Then ask it to "summarize loan_estimate.pdf" and see what happens when the model takes the bait.
+To put a real model behind the gateway, pass any client with a Messages-style `messages.create(...)` that returns text and tool-use blocks to `run_turn` in [`firewall/adapters/llm_agent.py`](firewall/adapters/llm_agent.py). The tests drive it with a scripted fake client, so no API key is needed.
 
 ## Using it in your own agent
 
@@ -132,7 +123,7 @@ firewall/
   mcp.py          OAuth token checks and tool pinning
   audit.py        append-only JSONL audit log
   adapters/       LLM tool-calling loop
-examples/         fake bank, offline demo, live agent
+examples/         fake bank and offline demo
 tests/            35 tests, one or more per attack
 ```
 

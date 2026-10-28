@@ -14,7 +14,6 @@ dependencies = ["PyYAML>=6.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
-live = ["anthropic>=0.40"]
 
 [tool.setuptools.packages.find]
 include = ["firewall*"]
