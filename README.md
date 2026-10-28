@@ -32,6 +32,7 @@ Better prompts don't fix that. What fixes it is a control layer outside the mode
 | Agent sends data outside the bank | Email destinations must be on an allowlist. Look-alike domains fail. | OWASP LLM02 |
 | Large or unusual transfers | Holds anything over the agent limit, or to a new payee, for customer step-up and human review. | NIST AI RMF MANAGE |
 | Account numbers or SSNs in replies | Masks them on the way out, keeping the last four digits. | OWASP LLM02 |
+| Cloned or deepfake voice on a phone call | Treats voice as a channel, never as identity. Ends calls with a high synthetic-speech score, flags spoofed caller ID (STIR/SHAKEN), and holds any money movement requested by phone until the customer confirms in the app. A voiceprint match is logged but never authorizes anything. | NIST SP 800-63B, FFIEC |
 | MCP token passthrough | Rejects OAuth tokens whose audience isn't this tool server (RFC 8707), and tokens for a different customer. | MCP Authorization spec |
 | MCP tool poisoning ("rug pull") | Pins a SHA-256 hash of every approved tool definition. If a server quietly changes a tool's description, calls to it are blocked. | MCP security best practices |
 
@@ -84,7 +85,7 @@ git clone https://github.com/kwadkwk/teller-agent-firewall
 cd teller-agent-firewall
 pip install -e ".[dev]"
 
-pytest                       # 35 tests
+pytest                       # 42 tests
 python -m examples.demo      # six attack scenarios, no API key needed
 ```
 
@@ -121,10 +122,11 @@ firewall/
   policy.py       loads and validates policy.yaml
   detectors.py    injection matching and DLP masking
   mcp.py          OAuth token checks and tool pinning
+  voice.py        phone-channel risk: synthetic voice, caller ID, liveness
   audit.py        append-only JSONL audit log
   adapters/       LLM tool-calling loop
 examples/         fake bank and offline demo
-tests/            35 tests, one or more per attack
+tests/            42 tests, one or more per attack
 ```
 
 ## About

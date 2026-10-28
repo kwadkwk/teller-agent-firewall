@@ -20,6 +20,7 @@ from . import detectors
 from .audit import AuditLog
 from .mcp import Token, TokenError, ToolRegistry, check_token
 from .policy import Policy
+from .voice import VoiceSignals, assess
 
 
 class Outcome(str, Enum):
@@ -58,6 +59,8 @@ class Session:
     known_payees: set[str] = field(default_factory=set)
     customer_messages: list[str] = field(default_factory=list)
     untrusted_sources: list[str] = field(default_factory=list)
+    channel: str = "chat"          # "chat" or "voice"
+    voice_verdict: str | None = None
 
     @property
     def tainted(self) -> bool:
@@ -105,12 +108,23 @@ class Gateway:
 
     # ------------------------------------------------------------- 1. input
     def screen_input(self, session: Session, text: str) -> Decision:
+        if session.voice_verdict == "block":
+            return self._log(session, Decision(Outcome.BLOCK, "voice", "Call already flagged as a synthetic voice.", self._c("voice")))
         hit = detectors.find_injection(text, self.policy.injection_patterns)
         if hit:
             d = Decision(Outcome.BLOCK, "input", f'Injection phrase found: "{hit}"', self._c("input"))
             return self._log(session, d)
         session.customer_messages.append(text)
         return self._log(session, Decision(Outcome.ALLOW, "input", "No injection patterns.", self._c("input")))
+
+    # ------------------------------------------------------ 1b. voice
+    def screen_call(self, session: Session, signals: VoiceSignals) -> Decision:
+        """Assess a phone call before its transcript reaches the model."""
+        session.channel = "voice"
+        verdict, reason = assess(signals, self.policy.voice)
+        session.voice_verdict = verdict
+        outcome = {"block": Outcome.BLOCK, "flag": Outcome.FLAG, "allow": Outcome.ALLOW}[verdict]
+        return self._log(session, Decision(outcome, "voice", reason, self._c("voice")))
 
     # ------------------------------------------------ 2. untrusted content
     def ingest(self, session: Session, source: str, content: str) -> tuple[str, Decision]:
@@ -141,6 +155,9 @@ class Gateway:
         rule = p.tools.get(call.name)
         if rule is None:
             return log(Decision(Outcome.BLOCK, "authorization", f"Tool '{call.name}' is not on the allowlist.", self._c("authorization")))
+
+        if session.voice_verdict == "block":
+            return log(Decision(Outcome.BLOCK, "voice", "This call was flagged as a synthetic voice. No actions allowed.", self._c("voice")))
 
         if self.registry and p.pin_tool_descriptions and tool_def is not None:
             ok, why = self.registry.verify(tool_def)
@@ -196,6 +213,14 @@ class Gateway:
             domain = to.rsplit("@", 1)[-1] if "@" in to else ""
             if domain not in p.allowed_email_domains:
                 return log(Decision(Outcome.BLOCK, "egress", f"'{domain or to}' is not an approved destination.", self._c("egress")))
+
+        if session.channel == "voice" and (rule.money_movement or rule.egress):
+            if p.voice.step_up_for_money:
+                return log(Decision(
+                    Outcome.HOLD, "transaction",
+                    "Requested by phone. A voice is not proof of identity, so the customer must confirm in the mobile app.",
+                    self._c("voice"),
+                ))
 
         if rule.money_movement:
             amount = float(str(call.args.get("amount", 0)).replace(",", "").lstrip("$") or 0)

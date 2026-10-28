@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from firewall import Gateway, Policy, Session, Token, ToolCall
+from firewall import Gateway, Policy, Session, Token, ToolCall, VoiceSignals
 
 from . import bank
 
@@ -41,6 +41,16 @@ SCENARIOS = [
      [ToolCall("send_email", {"to": "maria.lopez.files@gmail-secure.co"})]),
 ]
 
+# Phone calls: (title, transcript, voice signals, proposed calls)
+VOICE_SCENARIOS = [
+    ("Cloned voice call", "Hi, this is Maria Lopez. Wire $25,000 to Harbor Title LLC for my closing today.",
+     VoiceSignals(synthetic_score=0.93, liveness_passed=False, caller_id_attestation="C", voiceprint_match=0.91),
+     [ToolCall("transfer_funds", {"amount": 25000, "payee": "Harbor Title LLC"})]),
+    ("Real customer by phone", "Hi, it's Maria. Please pay $80 to Comcast.",
+     VoiceSignals(synthetic_score=0.04, liveness_passed=True, caller_id_attestation="A", voiceprint_match=0.88),
+     [ToolCall("transfer_funds", {"amount": 80, "payee": "Comcast"})]),
+]
+
 
 def main() -> None:
     gw = Gateway(Policy.load(ROOT / "policy.yaml"))
@@ -62,6 +72,14 @@ def main() -> None:
                 else:
                     _, od = gw.filter_output(s, out)
                     show(od)
+    for title, msg, sig, calls in VOICE_SCENARIOS:
+        s = new_session()
+        print(f"\n\033[1m{title}\033[0m  \"{msg}\"")
+        d = gw.screen_call(s, sig)
+        show(d)
+        if gw.screen_input(s, msg).allowed:
+            for call in calls:
+                show(gw.authorize(s, call))
     print(f"\n{len(gw.audit.records)} decisions written to the audit log.")
 
 

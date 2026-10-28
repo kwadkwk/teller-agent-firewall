@@ -9,6 +9,8 @@ from typing import Any
 
 import yaml
 
+from .voice import VoiceRules
+
 
 @dataclass(frozen=True)
 class ToolRule:
@@ -33,6 +35,7 @@ class Policy:
     expected_audience: str
     max_token_age_seconds: int
     pin_tool_descriptions: bool
+    voice: VoiceRules = field(default_factory=VoiceRules)
     controls: dict[str, str] = field(default_factory=dict)
 
     @classmethod
@@ -76,5 +79,6 @@ class Policy:
             expected_audience=mcp.get("expected_audience", ""),
             max_token_age_seconds=int(mcp.get("max_token_age_seconds", 900)),
             pin_tool_descriptions=bool(mcp.get("pin_tool_descriptions", True)),
+            voice=VoiceRules.from_dict(d.get("voice")),
             controls=dict(d.get("controls", {})),
         )

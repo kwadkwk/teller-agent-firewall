@@ -52,6 +52,13 @@ dlp:
   mask_account_numbers: true       # keep last 4
   mask_ssn: true
 
+voice:
+  # A voice is never proof of identity. Cloned voices pass voiceprints.
+  block_synthetic_score: 0.85        # end the call, alert fraud
+  review_synthetic_score: 0.5        # treat caller as unverified
+  trusted_caller_id_attestation: "A" # STIR/SHAKEN full attestation
+  step_up_for_money_movement: true   # money over the phone needs in-app confirmation
+
 mcp:
   control: "MCP Authorization (OAuth 2.1) + tool pinning"
   expected_audience: "https://tools.tellerbank.example"
@@ -67,3 +74,4 @@ controls:
   egress: "OWASP LLM02 · data egress allowlist"
   output: "OWASP LLM02 · NIST AI RMF MEASURE 2.10"
   mcp: "MCP Authorization spec · RFC 8707 resource indicators"
+  voice: "NIST SP 800-63B biometrics rule · FFIEC authentication guidance · STIR/SHAKEN"
