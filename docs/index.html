@@ -138,6 +138,32 @@ td.w{white-space:normal;min-width:200px}
 .diff ins{background:var(--bad-bg);color:var(--bad);text-decoration:none}
 .result{min-height:20px}
 .dec{font-weight:600}.dec.ALLOW,.dec.APPROVED{color:var(--ok)}.dec.BLOCK,.dec.DENIED{color:var(--bad)}.dec.HOLD,.dec.FLAG{color:var(--warn)}.dec.REDACT{color:var(--info)}
+/* leadership view */
+.lead-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:14px;margin:18px 0 14px}
+.lead-top h2{font-family:var(--display);font-weight:600;font-size:clamp(22px,3vw,28px);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.lead-top p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:700px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi b{display:block;font-family:var(--display);font-size:30px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:13px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:980px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{margin:0;font-size:16px;line-height:1.3}
+.card dl{margin:0;display:flex;flex-direction:column;gap:8px}
+.card dt{font:600 10.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card dd{margin:2px 0 0;font-size:14px}
+.card .risk{color:var(--bad);font-weight:600}
+.card .foot2{margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--line)}
+.res{font:600 12px var(--mono);padding:4px 8px;border-radius:5px;background:var(--bg);color:var(--muted)}
+.res.BLOCK{background:var(--bad-bg);color:var(--bad)}.res.HOLD{background:var(--warn-bg);color:var(--warn)}.res.REDACT,.res.ALLOW{background:var(--ok-bg);color:var(--ok)}
+.faq{margin-top:18px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:880px){.faq{grid-template-columns:1fr}}
+.faq div{border-left:3px solid var(--accent);padding:4px 0 4px 12px}
+.faq b{display:block;font-size:14.5px;margin-bottom:3px}
+.faq span{font-size:13.5px;color:var(--muted)}
 .foot{font-size:12px;color:var(--muted);max-width:90ch}
 .foot a{color:var(--accent)}
 @media (prefers-reduced-motion:no-preference){.ev{animation:in .25s ease both}@keyframes in{from{opacity:.4;transform:translateY(3px)}}}
@@ -149,7 +175,7 @@ td.w{white-space:normal;min-width:200px}
       <div>
         <div class="eyebrow">AI agent security · reference build</div>
         <h1>Teller Agent Firewall</h1>
-        <p>Every request from the bank's AI agent flies through six gates before it can touch core banking. Run an attack below and watch where it gets stopped.</p>
+        <p>Every request from the bank's AI agent flies through six gates before it can touch core banking. Pick an attack below and watch where it gets stopped.</p>
       </div>
       <div class="who">Customer <b>Maria Lopez</b> · C-1042<br>Token aud <b>tools.tellerbank.example</b><br>Synthetic demo data</div>
     </div>
@@ -161,11 +187,33 @@ td.w{white-space:normal;min-width:200px}
   </section>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" id="tab-console" aria-selected="true" aria-controls="view-console">Agent console</button>
+    <button class="tab" role="tab" id="tab-lead" aria-selected="true" aria-controls="view-lead">Leadership view</button>
+    <button class="tab" role="tab" id="tab-console" aria-selected="false" aria-controls="view-console">Agent console</button>
     <button class="tab" role="tab" id="tab-mcp" aria-selected="false" aria-controls="view-mcp">MCP &amp; OAuth</button>
   </div>
 
-  <div id="view-console" role="tabpanel" aria-labelledby="tab-console">
+  <div id="view-lead" role="tabpanel" aria-labelledby="tab-lead">
+    <div class="lead-top">
+      <div>
+        <h2>What could a bank's AI agent do wrong, and what stops it?</h2>
+        <p>Six real ways attackers go after AI agents. Each card shows the business risk in plain terms and the control that stops it. Click Show me to watch it happen above.</p>
+      </div>
+      <button class="btn pri" id="runall">Run all six</button>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><b id="k-stopped">0 of 6</b><span>attacks stopped or held for a person</span></div>
+      <div class="kpi"><b id="k-money">$0</b><span>kept from moving without the customer's say-so</span></div>
+      <div class="kpi"><b id="k-log">0</b><span>decisions written to the audit log</span></div>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="faq">
+      <div><b>Can the AI move money on its own?</b><span>No. A transfer only goes through when the customer asked for that exact amount and payee. Anything large or to a new payee waits for the customer to confirm.</span></div>
+      <div><b>Can it see other customers' data?</b><span>No. The AI only gets the signed-in customer's access, never the bank's. Account numbers and SSNs are masked before any reply leaves.</span></div>
+      <div><b>Would we know if something went wrong?</b><span>Yes. Every decision is logged with the reason and the industry control it maps to (OWASP, NIST AI RMF), ready for audit.</span></div>
+    </div>
+  </div>
+
+  <div id="view-console" role="tabpanel" aria-labelledby="tab-console" hidden>
     <div class="grid">
       <section class="panel" aria-label="Customer chat">
         <div class="ph">
@@ -420,7 +468,7 @@ $("scen").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)
 $("form").addEventListener("submit",e=>{e.preventDefault();const v=$("inp").value;$("inp").value="";go(v,false)});
 $("inp").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("form").requestSubmit()}});
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===t));
-  $("view-console").hidden=t.id!=="tab-console";$("view-mcp").hidden=t.id!=="tab-mcp"});
+  $("view-lead").hidden=t.id!=="tab-lead";$("view-console").hidden=t.id!=="tab-console";$("view-mcp").hidden=t.id!=="tab-mcp"});
 
 /* MCP tab */
 function renderToken(){const t=token(),bad={aud:tamper.aud,sub:tamper.sub,scope:tamper.scope,iat:tamper.exp,exp:tamper.exp};
@@ -432,7 +480,7 @@ function renderReg(){$("reg").innerHTML=Object.keys(TOOL_DEFS).map(n=>{const cur
 ["aud","scope","sub","exp"].forEach(k=>$("t-"+k).onchange=e=>{tamper[k]=e.target.checked;renderToken()});
 $("tokreset").onclick=()=>{["aud","scope","sub","exp"].forEach(k=>{tamper[k]=false;$("t-"+k).checked=false});renderToken()};
 $("rug").onclick=()=>{const rug=served.transfer_funds.description!==TOOL_DEFS.transfer_funds.description;served.transfer_funds.description=TOOL_DEFS.transfer_funds.description+(rug?"":RUG_TEXT);renderReg()};
-function tryCall(name,args,said){const s=Object.assign(newSession(),{said:[said]});const d=GW.authorize(s,name,args);
+function tryCall(name,args,said){const s=Object.assign(newSession(),{said:[said]});const d=GW.authorize(s,name,args);setTimeout(()=>tryDone(d));
   $("tryres").innerHTML=`<div class="ev o-${d.outcome}"><div><div class="t">${esc(labelFor(d))} · ${name}</div><div class="d">${esc(d.reason)}</div><div class="c">${esc(d.control)}</div></div><span class="pill">${d.outcome}</span></div>`;
   logRow(said,name,d,"mcp test");stats.req++;if(d.outcome==="BLOCK")stats.block++;if(d.outcome==="HOLD")stats.hold++;renderStats();Scene.fire(d.outcome==="BLOCK"||d.outcome==="HOLD"?GATE[d.stage]:6,d.outcome)}
 $("try1").onclick=()=>tryCall("transfer_funds",{amount:80,payee:"Comcast"},"Pay $80 to Comcast");
@@ -506,9 +554,35 @@ const Scene=(()=>{const api={fire(){}};const T=window.THREE,cv=$("c3d"),box=$("s
   if(reduce){draw(0);const f=api.fire;api.fire=(a,b)=>{f(a,b);last=performance.now();requestAnimationFrame(loop)}}else requestAnimationFrame(loop);
   return api})();
 
+/* ---------------- leadership view ---------------- */
+let tryDone=()=>{};
+const PLAIN={input:"message screening",provenance:"source check",mcp:"access key check",authorization:"permission check",object_access:"permission check",egress:"approved destinations",transaction:"spending limits",output:"privacy filter"};
+const CARDS=[
+  {t:"Hidden instructions inside a customer's document",risk:"$4,900 wired to a stranger",riskAmt:4900,stop:"Money only moves when the customer asked for that exact amount and payee. Words inside a file don't count.",run:{scen:2}},
+  {t:"Someone tells the AI to ignore its rules",risk:"Every customer's SSN exposed",stop:"Manipulation attempts are caught before the message ever reaches the AI.",run:{scen:1}},
+  {t:"Asking about another customer's account",risk:"A privacy breach and a regulator call",stop:"The AI only has the signed-in customer's access, never the whole bank's.",run:{scen:3}},
+  {t:"A large transfer request",risk:"$12,000 gone in one message",riskAmt:12000,stop:"Anything over $2,500 or to a new payee waits for the customer to confirm, with a person in the loop.",run:{scen:4}},
+  {t:"Sending statements to a look-alike email",risk:"Customer data leaves the bank",stop:"Data can only go to approved bank addresses. Look-alike domains fail.",run:{scen:5}},
+  {t:"A borrowed or stolen access key",risk:"The AI acts with access it shouldn't have",stop:"Every key is checked: it must be for this system, this customer, and less than 15 minutes old.",run:{token:true}}];
+const cardRes=Array(CARDS.length).fill(null);
+function renderCards(){$("cards").innerHTML=CARDS.map((c,i)=>{const r=cardRes[i];
+  return`<article class="card"><h3>${esc(c.t)}</h3><dl><div><dt>What could happen</dt><dd class="risk">${esc(c.risk)}</dd></div><div><dt>What stops it</dt><dd>${esc(c.stop)}</dd></div></dl>
+  <div class="foot2"><span class="res ${r?r.o:""}">${r?(r.o==="HOLD"?"Held":r.o==="BLOCK"?"Stopped":"Allowed")+(r.g?" · "+r.g:""):"Not run yet"}</span><button class="btn" data-c="${i}">Show me</button></div></article>`}).join("");
+  const done=cardRes.filter(r=>r&&(r.o==="BLOCK"||r.o==="HOLD"));$("k-stopped").textContent=done.length+" of 6";
+  $("k-money").textContent="$"+CARDS.reduce((a,c,i)=>a+(c.riskAmt&&cardRes[i]&&cardRes[i].o!=="ALLOW"?c.riskAmt:0),0).toLocaleString("en-US");
+  $("k-log").textContent=$("log").children.length}
+function runCard(i){const c=CARDS[i];
+  if(c.run.token){tamper.aud=true;renderToken();tryDone=d=>{cardRes[i]={o:d.outcome,g:PLAIN[d.stage]};tamper.aud=false;renderToken();tryDone=()=>{};renderCards()};
+    tryCall("transfer_funds",{amount:80,payee:"Comcast"},"Pay $80 to Comcast");return}
+  const s=SCEN[c.run.scen];session=newSession();runScripted(s.p,!!s.doc);
+  const stop=evs.find(d=>d.outcome==="BLOCK"||d.outcome==="HOLD");cardRes[i]={o:stop?stop.outcome:"ALLOW",g:stop?PLAIN[stop.stage]:""};renderCards()}
+$("cards").addEventListener("click",e=>{const b=e.target.closest("button[data-c]");if(b)runCard(+b.dataset.c)});
+$("runall").onclick=()=>{const btn=$("runall");btn.disabled=true;let i=0;const step=()=>{runCard(i);i++;if(i<CARDS.length)setTimeout(step,1400);else btn.disabled=false};
+  try{window.scrollTo({top:0,behavior:"smooth"})}catch(e){}step()};
+
 /* ---------------- boot ---------------- */
 renderStats();renderGates();renderToken();renderReg();setMode("script");
-runScripted(SCEN[0].p);runScripted(SCEN[2].p,true);
+runScripted(SCEN[0].p);runScripted(SCEN[2].p,true);session=newSession();renderCards();
 (async()=>{try{const s=null;if(!s){$("m-live").hidden=true;return}
   const lim=await s.limits().catch(()=>null);if(lim&&!lim.tools){$("m-live").hidden=true;return}
   sample=s;$("m-live").disabled=false;if(mode==="script")setMode("script")}

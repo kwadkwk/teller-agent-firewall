@@ -2,7 +2,7 @@
 
 A policy gateway that sits between a bank's AI agent and the systems it can touch. The model can propose any action it wants. The gateway decides what actually happens.
 
-**[Try the interactive demo](https://kwadkwk.github.io/teller-agent-firewall/)** · run six attacks and watch where each one gets stopped.
+**[Try the interactive demo](https://kwadkwk.github.io/teller-agent-firewall/)** · run six attacks and watch where each one gets stopped. The Leadership view explains each threat in plain English for executives and boards.
 
 ```
 $ python -m examples.demo
